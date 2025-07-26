@@ -1,28 +1,19 @@
 import { useEffect, useState } from 'react';
-
-// material-ui
 import Grid from '@mui/material/Grid';
-
-// project imports
 import EarningCard from './EarningCard';
 import PopularCard from './PopularCard';
 import TotalOrderLineChartCard from './TotalOrderLineChartCard';
 import TotalIncomeDarkCard from './TotalIncomeDarkCard';
 import TotalIncomeLightCard from './TotalIncomeLightCard';
 import TotalGrowthBarChart from './TotalGrowthBarChart';
-
 import { gridSpacing } from 'store/constant';
 import api from '../../utils/apiService';
-
-// assets
 import StorefrontTwoToneIcon from '@mui/icons-material/StorefrontTwoTone';
 import { useSelector } from 'react-redux';
 import GenderChart from './GenderChat';
 import StudentPerClassLineChartCard from './TotalOrderLineChartCard';
 import StudentPerClassBarChart from './TotalGrowthBarChart';
 import AttendancePerClass from './AttendancePerClass';
-
-// ==============================|| DEFAULT DASHBOARD ||============================== //
 
 const Dashboard = () => {
   const [isLoading, setLoading] = useState(true);
@@ -99,8 +90,6 @@ const Dashboard = () => {
           <Grid item xs={12} md={6}>
             <StudentPerClassLineChartCard isLoading={isLoading} />
           </Grid>
-          
-          
         </Grid>
       </Grid>
     </Grid>

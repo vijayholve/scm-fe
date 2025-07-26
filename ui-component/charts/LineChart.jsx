@@ -7,7 +7,7 @@ import Chart from 'react-apexcharts';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
 
-const ReusableBarChart = ({
+const ReusableLineChart = ({
   title,
   subtitle,
   series = [],
@@ -16,11 +16,10 @@ const ReusableBarChart = ({
   yAxisTitle = '',
   height = 480,
   showCard = true,
-  chartId = 'reusable-bar-chart',
+  chartId = 'reusable-line-chart',
   colors,
   dataLabels = { enabled: false },
-  plotOptions = {},
-  customHeader,
+  stroke = { curve: 'smooth', width: 2 },
   ...otherChartOptions
 }) => {
   const theme = useTheme();
@@ -39,31 +38,15 @@ const ReusableBarChart = ({
   const defaultChartOptions = {
     chart: {
       id: chartId,
-      type: 'bar',
+      type: 'line',
       height: height,
       toolbar: {
         show: true
       },
       background: 'transparent'
     },
-    plotOptions: {
-      bar: {
-        horizontal: false,
-        columnWidth: '55%',
-        endingShape: 'rounded',
-        borderRadius: 4,
-        dataLabels: {
-          position: 'top'
-        },
-        ...plotOptions.bar
-      },
-      ...plotOptions
-    },
     dataLabels: dataLabels,
-    stroke: {
-      show: false,
-      width: 0
-    },
+    stroke: stroke,
     xaxis: {
       categories: xAxisCategories,
       title: {
@@ -99,11 +82,6 @@ const ReusableBarChart = ({
         }
       }
     },
-    fill: {
-      type: 'solid',
-      opacity: 1,
-      colors: defaultColors
-    },
     tooltip: {
       theme: theme.palette.mode,
       y: {
@@ -120,20 +98,6 @@ const ReusableBarChart = ({
     grid: {
       borderColor: divider,
       strokeDashArray: 0,
-      xaxis: {
-        lines: {
-          show: false
-        }
-      },
-      yaxis: {
-        lines: {
-          show: true
-        }
-      },
-      padding: {
-        left: 0,
-        right: 0
-      }
     },
     colors: defaultColors,
     ...otherChartOptions
@@ -146,11 +110,7 @@ const ReusableBarChart = ({
 
   const ChartContent = () => (
     <Grid container spacing={gridSpacing}>
-      {customHeader ? (
-        <Grid item xs={12}>
-          {customHeader}
-        </Grid>
-      ) : (title || subtitle) && (
+      {(title || subtitle) && (
         <Grid item xs={12}>
           <Grid container direction="column" spacing={1}>
             {subtitle && (
@@ -189,7 +149,7 @@ const ReusableBarChart = ({
   );
 };
 
-ReusableBarChart.propTypes = {
+ReusableLineChart.propTypes = {
   title: PropTypes.string,
   subtitle: PropTypes.string,
   series: PropTypes.arrayOf(
@@ -206,8 +166,7 @@ ReusableBarChart.propTypes = {
   chartId: PropTypes.string,
   colors: PropTypes.array,
   dataLabels: PropTypes.object,
-  plotOptions: PropTypes.object,
-  customHeader: PropTypes.node
+  stroke: PropTypes.object
 };
 
-export default ReusableBarChart;
+export default ReusableLineChart;
