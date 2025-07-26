@@ -14,6 +14,7 @@ import GenderChart from './GenderChat';
 import StudentPerClassLineChartCard from './TotalOrderLineChartCard';
 import StudentPerClassBarChart from './TotalGrowthBarChart';
 import AttendancePerClass from './AttendancePerClass';
+import NewRoleDashboard from './NewRoleDashboard';
 
 const Dashboard = () => {
   const [isLoading, setLoading] = useState(true);
@@ -37,6 +38,7 @@ const Dashboard = () => {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
+        
         <Grid container spacing={gridSpacing}>
           <Grid item lg={4} md={6} sm={6} xs={12}>
             <TotalIncomeLightCard
@@ -75,6 +77,7 @@ const Dashboard = () => {
       </Grid>
       <Grid item xs={12}>
         <Grid container spacing={gridSpacing}>
+          <NewRoleDashboard />
           <Grid item xs={12} md={8}>
             <StudentPerClassBarChart isLoading={isLoading} />
           </Grid>
