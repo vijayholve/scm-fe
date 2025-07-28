@@ -23,6 +23,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import api, { userDetails } from '../../../utils/apiService';
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { hasPermission } from "../../../utils/permissionUtils";
 
 const columns = [
     { field: 'id', headerName: 'ID', width: 90 },
@@ -58,6 +59,7 @@ const Timetables = () => {
     const navigate = useNavigate();
     const user = useSelector((state) => state.user.user);
     console.log('User:', user);
+    const permissions = user?.role?.permissions;
 
     const handleOnClickDelete = (data) => {
         if (data.id) {
@@ -77,17 +79,19 @@ const Timetables = () => {
         renderCell: (params) => {
             return (
                 <ActionWrapper>
-                    <Button
-                        variant="outlined"
-                        id="approve_user"
-                        priority="primary"
-                        onClick={(e) => navigate(`/masters/timetable/edit/${params.row.id}`)}
-                        disabled={false}
-                        startIcon={<EditOutlinedIcon />}
-                    >
-                        Edit
-                    </Button>
-                    <Button
+                    {hasPermission(permissions, 'TIMETABLE', 'edit') && (
+                        <Button
+                            variant="outlined"
+                            id="approve_user"
+                            priority="primary"
+                            onClick={(e) => navigate(`/masters/timetable/edit/${params.row.id}`)}
+                            disabled={false}
+                            startIcon={<EditOutlinedIcon />}
+                        >
+                            Edit
+                        </Button>
+                    )}
+                    {hasPermission(permissions, 'TIMETABLE', 'delete') && <Button
                         variant="outlined"
                         id="reject_user"
                         priority="primary"
@@ -96,20 +100,31 @@ const Timetables = () => {
                         startIcon={<DeleteIcon />}
                     >
                         Delete
-                    </Button>
-                    <Button variant="outlined" id="approve_user" priority="primary" onClick={(e) => navigate(`/masters/timetable/view/${params.row.id}`)} disabled={false} startIcon={<VisibilityIcon />}></Button>
+                    </Button>}
+                    {hasPermission(permissions, 'TIMETABLE', 'view') && <Button variant="outlined" id="approve_user" priority="primary" onClick={(e) => navigate(`/masters/timetable/view/${params.row.id}`)} disabled={false} startIcon={<VisibilityIcon />}></Button>} 
                 </ActionWrapper>
             );
         }
     };
     const fetchTimetables = (page, pageSize) => {
-        api.post(`api/timetable/getAll/${userDetails.getAccountId()}?type=TEACHER`, {
-            page: page,
-            size: pageSize,
-            sortBy: "id",
-            sortDir: "asc",
-            search: ""
-        }).then(response => {
+        let url = '';
+        if (user?.type === "TEACHER") {
+            url = `api/timetable/getAll/${userDetails.getAccountId()}?type=TEACHER`;
+        } else if (user?.type === "STUDENT") {
+            url = `api/timetable/by-account-class-division/${userDetails.getAccountId()}/${user?.classId}/${user?.divisionId}?type=STUDENT`;
+        } else {
+            url = `api/timetable/getAll/${userDetails.getAccountId()}`;
+        }
+        (user?.type === "STUDENT"
+            ? api.get(url)
+            : api.post(url, {
+                page: page,
+                size: pageSize,
+                sortBy: "id",
+                sortDir: "asc",
+                search: ""
+            })
+        ).then(response => {
             setTimetables(response.data.content || []);
             setRowCount(response.data.totalElements || 0);
         }).catch(err => console.error(err));

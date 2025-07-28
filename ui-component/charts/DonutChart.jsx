@@ -30,11 +30,9 @@ const ReusableDonutChart = ({
     theme.palette.success.main
   ];
 
-  const defaultChartOptions = {
+  const options = {
     chart: {
       id: chartId,
-      type: 'donut',
-      height: height,
       background: 'transparent'
     },
     labels: labels,
@@ -49,11 +47,6 @@ const ReusableDonutChart = ({
       enabled: true
     },
     ...otherChartOptions
-  };
-
-  const chartConfig = {
-    options: defaultChartOptions,
-    series: series
   };
 
   const ChartContent = () => (
@@ -75,7 +68,9 @@ const ReusableDonutChart = ({
         </Grid>
       )}
       <Grid item xs={12}>
-        <Chart {...chartConfig} />
+        {/* === THE FIX IS HERE === */}
+        {/* We now pass type and height as explicit props for reliability */}
+        <Chart options={options} series={series} type="donut" height={height} />
       </Grid>
     </Grid>
   );
@@ -97,7 +92,7 @@ ReusableDonutChart.propTypes = {
   height: PropTypes.number,
   showCard: PropTypes.bool,
   chartId: PropTypes.string,
-  colors: PropTypes.array,
+  colors: PropTypes.array
 };
 
 export default ReusableDonutChart;

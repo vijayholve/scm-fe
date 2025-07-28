@@ -122,7 +122,7 @@ const getMainRoutes = (permissions = []) => ({
         element: <Students />
       },
       hasPermission(permissions, 'STUDENT', 'edit') && {
-        path: 'students/edit/:id',
+        path: 'student/edit/:id',
         element: <EditStudents />
       },
       hasPermission(permissions, 'STUDENT', 'add') && {
@@ -215,7 +215,7 @@ const getMainRoutes = (permissions = []) => ({
         path: 'attendance/add',
         element: <AttendanceEdit />
       },
-      {
+      hasPermission(permissions, 'STUDENT_ATTENDANCE', 'view') && {
         path: 'student-attendance',
         element: <StudentAttendanceList />
       },

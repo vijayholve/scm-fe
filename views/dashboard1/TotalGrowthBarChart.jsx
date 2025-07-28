@@ -82,7 +82,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
   return (
     <>
       {isLoading ? (
-        <SkeletonTotalGrowthBarChart />
+        <SkeletonTotalGrowthBarChart  />
       ) : (
         <MainCard>
           <Grid container spacing={gridSpacing}>

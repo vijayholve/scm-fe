@@ -191,7 +191,7 @@ const ProfileSection = () => {
           <Transitions in={open} {...TransitionProps}>
             <Paper>
               <ClickAwayListener onClickAway={handleClose}>
-                <MainCard border={false} elevation={16} content={false} boxShadow={theme.shadows[16]}>
+                <MainCard border={false} elevation={16} content={false} sx={{ boxShadow: theme.shadows[16] }}>
                   <Box sx={{ p: 2, pb: 0 }}>
                     <Stack>
                       <Stack direction="row" spacing={0.5} alignItems="center">

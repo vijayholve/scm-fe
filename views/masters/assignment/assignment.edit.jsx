@@ -12,10 +12,12 @@ import MainCard from 'ui-component/cards/MainCard';
 import AnimateButton from 'ui-component/extended/AnimateButton';
 import api from "../../../utils/apiService"
 import { gridSpacing } from 'store/constant';
+import { useSelector } from 'react-redux';
 
 const EditAssignment = ({ ...others }) => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.user.user);
   const { id: assignmentId } = useParams();
   const [assignmentData, setAssignmentData] = useState({
     id: undefined,
@@ -29,13 +31,33 @@ const EditAssignment = ({ ...others }) => {
     modifiedDate: undefined,
     deadLine: undefined,
     isActive: true,
-    message: ''
+    message: '',
+    status: ''
   });
   const [uploadedFile, setUploadedFile] = useState(null);
-  const [submissions, setSubmissions] = useState([
-    { studentId: 'S101', fileName: 'maths.pdf', status: '', comment: '' },
-    { studentId: 'S102', fileName: 'science.docx', status: '', comment: '' }
-  ]);
+  const [assignmentSubmission, setAssignmentSubmission] = useState(null);
+  const [submissions, setSubmissions] = useState([]);
+  useEffect(() => {
+    // Fetch submissions for the current assignment and user
+    if (assignmentId && user?.id) {
+      const fetchSubmissions = async () => {
+        try {
+          let response;
+          if (user?.type === "STUDENT") {
+            response = await api.get(`/api/assignments/submissions/${assignmentId}/student/${user.id}`);
+          } else if (user?.type === "TEACHER") {
+            response = await api.get(`/api/assignments/submissions/${assignmentId}`);
+          }
+          if (Array.isArray(response.data)) {
+            setSubmissions(response.data);
+          }
+        } catch (error) {
+          console.error('Failed to fetch submissions:', error);
+        }
+      };
+      fetchSubmissions();
+    }
+  }, [assignmentId, user?.id]);
 
 
   const Title = assignmentId ? 'Edit Assignment' : 'Add Assignment';
@@ -50,6 +72,8 @@ const EditAssignment = ({ ...others }) => {
     try {
       const response = await api.get(`api/assignments/getById?id=${id}`);
       setAssignmentData(response.data);
+      //setSubmissions(response.data.submissions);
+      setAssignmentSubmission(response.data.assignmentSubmission);
     } catch (error) {
       console.error('Failed to fetch Assignment data:', error);
     }
@@ -176,11 +200,11 @@ const EditAssignment = ({ ...others }) => {
               {/* Is Active */}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
-                  <InputLabel shrink htmlFor="isActive">Is Active</InputLabel>
+                  <InputLabel shrink htmlFor="status">Status</InputLabel>
                   <select
-                    id="isActive"
-                    name="isActive"
-                    value={values.isActive}
+                    id="status"
+                    name="status"
+                    value={values.status}
                     onChange={handleChange}
                     onBlur={handleBlur}
                     style={{
@@ -190,8 +214,8 @@ const EditAssignment = ({ ...others }) => {
                       borderRadius: '4px'
                     }}
                   >
-                    <option value={true}>Active</option>
-                    <option value={false}>Inactive</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
                   </select>
                 </FormControl>
               </Grid>
@@ -212,7 +236,7 @@ const EditAssignment = ({ ...others }) => {
               </Grid>
 
               {/* Upload File */}
-              <Grid item xs={12} sm={6}>
+              {user?.type != "STUDENT" && <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel shrink htmlFor="file">Upload File</InputLabel>
                   <input
@@ -223,10 +247,10 @@ const EditAssignment = ({ ...others }) => {
                     style={{ marginTop: '16px' }}
                   />
                 </FormControl>
-              </Grid>
-              
+              </Grid>}
+
               {/* Submit Button */}
-              <Grid item xs={12}>
+              {user?.type != "STUDENT" && <Grid item xs={12}>
                 <AnimateButton>
                   <Button
                     disableElevation
@@ -239,43 +263,139 @@ const EditAssignment = ({ ...others }) => {
                     {assignmentId ? 'Update' : 'Create'}
                   </Button>
                 </AnimateButton>
-              </Grid>
+              </Grid>}
             </Grid>
 
 
 
-            {uploadedFile && (
-              <Box mt={4}>
+            {Array.isArray(assignmentSubmission) && assignmentSubmission.length > 0 && assignmentSubmission.map((submission, idx) => (
+              <Box mt={4} key={submission}>
                 <h3>Uploaded File</h3>
                 <table border="1" width="100%">
                   <thead>
                     <tr>
                       <th>File Name</th>
                       <th>Size</th>
+                      <th>Download</th>
+                      <th>Upload</th>
+                      <th>Submit</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td>{uploadedFile.name}</td>
-                      <td>{(uploadedFile.size / 1024).toFixed(2)} KB</td>
+                      <td>{submission.fileName}</td>
+                      <td>{(submission.fileSize / 1024).toFixed(2)} KB</td>
+                      <td>
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          onClick={async () => {
+                            try {
+                              const response = await api.get(
+                                `api/assignments/download/file/${submission.id}?assignmentId=${assignmentId}&fileName=${encodeURIComponent(submission.fileName)}`,
+                                {
+                                  responseType: 'blob'
+                                }
+                              );
+                              // Ensure we use the correct blob object for createObjectURL
+                              const url = window.URL.createObjectURL(new Blob([response.data]));
+                              const link = document.createElement('a');
+                              link.href = url;
+                              link.setAttribute('download', submission.fileName);
+                              document.body.appendChild(link);
+                              link.click();
+                              link.remove();
+                            } catch (error) {
+                              console.error('Failed to download file:', error);
+                              toast.error("Failed to download file");
+                            }
+                          }}
+                        >
+                          Download
+                        </Button>
+                      </td>
+                      {/* Upload button for student to select file */}
+                      <td>
+                        <input
+                          type="file"
+                          style={{ display: 'none' }}
+                          id={`upload-file-${idx}`}
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              // If assignmentSubmission is an array, clone and update the file for this row
+                              const updated = Array.isArray(assignmentSubmission) ? [...assignmentSubmission] : [];
+                              updated[idx] = { ...updated[idx], file };
+                              setAssignmentSubmission(updated);
+                            }
+                          }}
+                        />
+                        <label htmlFor={`upload-file-${idx}`}>
+                          <Button
+                            variant="outlined"
+                            color="secondary"
+                            component="span"
+                            size="small"
+                          >
+                            {submission.file ? "Change File" : "Upload File"}
+                          </Button>
+                        </label>
+                        {submission.file && (
+                          <span style={{ marginLeft: 8, fontSize: 12, color: "#888" }}>
+                            {submission.file.name}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Button for students to submit assignment */}
+                      <td>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          size="small"
+                          onClick={async () => {
+                            if (!submission.file) {
+                              toast.error("Please select a file to submit.");
+                              return;
+                            }
+                            try {
+                              const formData = new FormData();
+                              formData.append('file', submission.file);
+                              formData.append('assignmentId', assignmentId);
+                              // You may want to add studentId if needed
+                              formData.append('studentId', user?.id);
+                              await api.post('/api/assignments/submit', formData, {
+                                headers: {
+                                  'Content-Type': 'multipart/form-data'
+                                }
+                              });
+                              toast.success("Assignment submitted successfully");
+                            } catch (error) {
+                              toast.error("Failed to submit assignment");
+                            }
+                          }}
+                        >
+                          Submit Assignment
+                        </Button>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
               </Box>
-            )}
+            ))}
           </form>
         )}
       </Formik>
       <Box mt={5}>
-        <h3>Student Submissions</h3>
+        <h3>{user?.type != "STUDENT" ? "Student Submissions" : "My Submissions"}</h3>
         <table border="1" width="100%">
           <thead>
             <tr>
-              <th>Student ID</th>
+              <th>{user?.type != "STUDENT" ? "Student ID" : "My ID"}</th>
               <th>File Name</th>
-              <th>View/Download</th>
-              <th>Accept/Reject</th>
-              <th>Comment</th>
+              <th>{user?.type != "STUDENT" ? "View/Download" : "View"}</th>
+              <th>{user?.type != "STUDENT" ? "Accept/Reject" : "Status"}</th>
+              <th>{user?.type != "STUDENT" ? "Comment" : "Comment"}</th>
             </tr>
           </thead>
           <tbody>
@@ -293,7 +413,7 @@ const EditAssignment = ({ ...others }) => {
                   </Button>
                 </td>
                 <td>
-                  <select
+                  {user?.type != "STUDENT" && <select
                     value={sub.status}
                     onChange={(e) => {
                       const updated = [...submissions];
@@ -304,19 +424,64 @@ const EditAssignment = ({ ...others }) => {
                     <option value="">--Select--</option>
                     <option value="accepted">Accept</option>
                     <option value="rejected">Reject</option>
-                  </select>
+                  </select>}
+                  {user?.type == "STUDENT" && <span>{sub.status}</span>}
                 </td>
                 <td>
                   <input
                     type="text"
-                    value={sub.comment}
-                    placeholder="Enter comment"
+                    value={sub.message}
+                    placeholder="Enter Comment"
                     onChange={(e) => {
                       const updated = [...submissions];
-                      updated[idx].comment = e.target.value;
+                      updated[idx].message = e.target.value;
                       setSubmissions(updated);
                     }}
                   />
+                  <Button variant="outlined" color="primary" size="small" onClick={() => {
+                    // Call backend API to update submission
+                    const submission = submissions[idx];
+                    const payload = {
+                      id: submission.id,
+                      status: submission.status,
+                      message: submission.message
+                    };
+                    api.put(`/api/assignments/submissions/update/${submission.id}`, payload)
+                      .then(res => {
+                        toast.success("Submission updated");
+                        // Optionally update local state with response if needed
+                        // const updated = [...submissions];
+                        // updated[idx] = res.data;
+                        // setSubmissions(updated);
+                      })
+                      .catch(err => {
+                        toast.error("Failed to update submission");
+                        console.error(err);
+                      });
+                  }}>Save</Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    style={{ marginLeft: 8 }}
+                    onClick={async () => {
+                      const submission = submissions[idx];
+                      if (window.confirm("Are you sure you want to delete this submission?")) {
+                        try {
+                          await api.delete(`/api/assignments/submissions/delete/${submission.id}`);
+                          toast.success("Submission deleted");
+                          // Remove from local state
+                          const updated = submissions.filter((_, i) => i !== idx);
+                          setSubmissions(updated);
+                        } catch (err) {
+                          toast.error("Failed to delete submission");
+                          console.error(err);
+                        }
+                      }
+                    }}
+                  >
+                    Delete
+                  </Button>
                 </td>
               </tr>
             ))}

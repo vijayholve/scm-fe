@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import {useEffect}  from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -17,38 +17,66 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import { SET_MENU } from 'store/actions';
 import { drawerWidth } from 'store/constant';
 
-// Import your actual navigation data here!
-import navigation from 'routes/navigation';
 // assets
 import { IconChevronRight } from '@tabler/icons-react';
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' && prop !== 'theme' })(({ theme, open }) => ({
-  // ... (your existing Main styles)
+  ...theme.typography.mainContent,
+  borderBottomLeftRadius: 0,
+  borderBottomRightRadius: 0,
+  transition: theme.transitions.create(
+    'margin',
+    open
+      ? {
+          easing: theme.transitions.easing.easeOut,
+          duration: theme.transitions.duration.enteringScreen
+        }
+      : {
+          easing: theme.transitions.easing.sharp,
+          duration: theme.transitions.duration.leavingScreen
+        }
+  ),
+  [theme.breakpoints.up('md')]: {
+    marginLeft: open ? 0 : -(drawerWidth - 20),
+    width: `calc(100% - ${drawerWidth}px)`
+  },
+  [theme.breakpoints.down('md')]: {
+    marginLeft: '20px',
+    width: `calc(100% - ${drawerWidth}px)`,
+    padding: '16px'
+  },
+  [theme.breakpoints.down('sm')]: {
+    marginLeft: '10px',
+    width: `calc(100% - ${drawerWidth}px)`,
+    padding: '16px',
+    marginRight: '10px'
+  }
 }));
 
 const MainLayout = () => {
   const theme = useTheme();
-  const navigate = useNavigate(); // This is correctly used for programmatic navigation
+  const navigate = useNavigate();
   const matchDownMd = useMediaQuery(theme.breakpoints.down('md'));
-  // Handle left drawer
+  // Handle left drawe
   const leftDrawerOpened = useSelector((state) => state.customization.opened);
   const dispatch = useDispatch();
   const handleLeftDrawerToggle = () => {
     dispatch({ type: SET_MENU, opened: !leftDrawerOpened });
   };
 
-  useEffect(() => {
+  useEffect(()=> {
     const authData = JSON.parse(localStorage.getItem('SCM-AUTH'));
     const isUserLoggedIn = authData?.accessToken ? true : false;
     if (!isUserLoggedIn) {
       navigate('/login');
     }
-  }, [navigate]); // Add navigate to dependency array for best practice
-
+  }, [])
+ 
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-\      <AppBar
+      {/* header   */}
+      <AppBar
         enableColorOnDark
         position="fixed"
         color="inherit"
@@ -69,8 +97,7 @@ const MainLayout = () => {
       {/* main content */}
       <Main theme={theme} open={leftDrawerOpened}>
         {/* breadcrumb */}
-        {/* FIX HERE: Pass your navigation data, not the navigate function */}
-        <Breadcrumbs separator={IconChevronRight} navigation={navigation} icon title rightAlign />
+        <Breadcrumbs separator={IconChevronRight} navigation={navigate} icon title rightAlign />
         <Outlet />
       </Main>
       <Customization />

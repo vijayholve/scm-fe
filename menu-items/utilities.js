@@ -165,6 +165,14 @@ const rawUtilities = {
             breadcrumbs: false
         },
         {
+            id: 'STUDENT_ATTENDANCE',
+            title: 'Student Attendance',
+            type: 'item',
+            url: '/masters/student-attendance',
+            icon: icons.IconUsers,
+            breadcrumbs: false
+        },
+        {
             id: 'ASSIGNMENT',
             title: 'Assignments',
             type: 'item',
