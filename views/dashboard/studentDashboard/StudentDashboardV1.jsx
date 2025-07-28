@@ -1,151 +1,92 @@
-// Student Dashboard V1
+import React, { useState, useEffect } from 'react';
+import { Grid, Card, CardContent, Typography, List, ListItem, ListItemText, Divider } from '@mui/material';
+import api from '../../../api'; // Assuming you have a centralized API handler
+import { useSelector } from 'react-redux';
 
-import React from 'react';
-import ReusableBarChart from '../charts/BarChart';
+const StudentDashboardV1 = () => {
+  const { user } = useSelector((state) => state.user);
+  const [dashboardData, setDashboardData] = useState({
+    courses: [],
+    upcomingAssignments: [],
+    recentGrades: []
+  });
 
-// ==============================|| REUSABLE BAR CHART USAGE EXAMPLES ||============================== //
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await api.get(`/dashboard/student/${user.id}`);
+        setDashboardData(response.data);
+      } catch (error) {
+        console.error("Error fetching student dashboard data:", error);
+      }
+    };
 
-const ReusableBarChartExamples = () => {
-    // Example 1: Simple Bar Chart
-    const simpleSeries = [
-        {
-            name: 'Sales',
-            data: [30, 40, 35, 50, 49, 60, 70, 91, 125]
-        }
-    ];
+    if (user && user.id) {
+      fetchData();
+    }
+  }, [user]);
 
-    const simpleCategories = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+  return (
+    <Grid container spacing={3}>
+      {/* Enrolled Courses */}
+      <Grid item xs={12} md={6}>
+        <Card>
+          <CardContent>
+            <Typography variant="h5" component="div" sx={{ mb: 2 }}>
+              My Courses
+            </Typography>
+            <List>
+              {dashboardData.courses.map((course, index) => (
+                <ListItem key={index}>
+                  <ListItemText primary={course.name} secondary={`Instructor: ${course.instructor}`} />
+                </ListItem>
+              ))}
+            </List>
+          </CardContent>
+        </Card>
+      </Grid>
 
-    // Example 2: Multiple Series Bar Chart
-    const multipleSeries = [
-        {
-            name: 'Students',
-            data: [44, 55, 57, 56, 61, 58, 63, 60, 66]
-        },
-        {
-            name: 'Teachers',
-            data: [76, 85, 101, 98, 87, 105, 91, 114, 94]
-        }
-    ];
+      {/* Upcoming Assignments */}
+      <Grid item xs={12} md={6}>
+        <Card>
+          <CardContent>
+            <Typography variant="h5" component="div" sx={{ mb: 2 }}>
+              Upcoming Assignments
+            </Typography>
+            <List>
+              {dashboardData.upcomingAssignments.map((assignment, index) => (
+                <ListItem key={index}>
+                  <ListItemText primary={assignment.title} secondary={`Due: ${new Date(assignment.dueDate).toLocaleDateString()}`} />
+                </ListItem>
+              ))}
+            </List>
+          </CardContent>
+        </Card>
+      </Grid>
 
-    const multipleCategories = ['Class A', 'Class B', 'Class C', 'Class D', 'Class E', 'Class F', 'Class G', 'Class H', 'Class I'];
-
-    // Example 3: Student Performance Chart
-    const performanceSeries = [
-        {
-            name: 'Math Scores',
-            data: [85, 92, 78, 96, 87, 94, 88, 91, 89]
-        },
-        {
-            name: 'Science Scores',
-            data: [90, 88, 82, 94, 91, 89, 93, 87, 92]
-        }
-    ];
-
-    const studentCategories = ['Student A', 'Student B', 'Student C', 'Student D', 'Student E', 'Student F', 'Student G', 'Student H', 'Student I'];
-
-    return (
-        <div style={{ padding: '20px' }}>
-            <h2>Reusable Bar Chart Examples</h2>
-
-            <ReusableBarChart
-                title="Example Bar Chart"
-                series={[{ name: 'Students', data: [23, 45, 32, 67, 49] }]}
-                xAxisCategories={['Mon', 'Tue', 'Wed', 'Thu', 'Fri']}
-                xAxisTitle="Days"
-                yAxisTitle="Number of Students"
-                height={400}
-            />
-            <div style={{ marginBottom: '40px' }}>
-                <ReusableBarChart
-                    title="Weekly Students"
-                    series={[{ name: 'Students', data: [23, 45, 32, 67, 49] }]}
-                    xAxisCategories={['Mon', 'Tue', 'Wed', 'Thu', 'Fri']}
-                    xAxisTitle="Days"
-                    yAxisTitle="Number of Students"
-                />
-            </div>
-
-            {/* Example 1: Simple Bar Chart */}
-            <div style={{ marginBottom: '40px' }}>
-                <h3>Example 1: Simple Bar Chart</h3>
-                <ReusableBarChart
-                    title="Monthly Sales"
-                    subtitle="Sales Performance"
-                    series={simpleSeries}
-                    xAxisCategories={simpleCategories}
-                    xAxisTitle="Months"
-                    yAxisTitle="Sales Amount"
-                    height={400}
-                    chartId="simple-bar-chart"
-                />
-            </div>
-
-            {/* Example 2: Multiple Series */}
-            <div style={{ marginBottom: '40px' }}>
-                <h3>Example 2: Multiple Series Bar Chart</h3>
-                <ReusableBarChart
-                    title="Class Statistics"
-                    subtitle="Students and Teachers Count"
-                    series={multipleSeries}
-                    xAxisCategories={multipleCategories}
-                    xAxisTitle="Classes"
-                    yAxisTitle="Count"
-                    height={450}
-                    chartId="multiple-series-chart"
-                    dataLabels={{ enabled: true }}
-                />
-            </div>
-
-            {/* Example 3: Without Card Wrapper */}
-            <div style={{ marginBottom: '40px' }}>
-                <h3>Example 3: Without Card Wrapper</h3>
-                <ReusableBarChart
-                    title="Student Performance"
-                    subtitle="Test Scores Comparison"
-                    series={performanceSeries}
-                    xAxisCategories={studentCategories}
-                    xAxisTitle="Students"
-                    yAxisTitle="Scores"
-                    height={400}
-                    showCard={false}
-                    chartId="performance-chart"
-                    plotOptions={{
-                        bar: {
-                            horizontal: false,
-                            columnWidth: '65%',
-                            endingShape: 'rounded'
-                        }
-                    }}
-                />
-            </div>
-
-            {/* Example 4: Horizontal Bar Chart */}
-            <div style={{ marginBottom: '40px' }}>
-                <h3>Example 4: Horizontal Bar Chart</h3>
-                <ReusableBarChart
-                    title="Department Performance"
-                    subtitle="Monthly Targets"
-                    series={[
-                        {
-                            name: 'Target Achievement',
-                            data: [320, 302, 301, 334, 390, 330, 320]
-                        }
-                    ]}
-                    xAxisCategories={['Math', 'Science', 'English', 'History', 'Geography', 'Physics', 'Chemistry']}
-                    xAxisTitle="Achievement %"
-                    yAxisTitle="Departments"
-                    height={400}
-                    chartId="horizontal-chart"
-                    plotOptions={{
-                        bar: {
-                            horizontal: true
-                        }
-                    }}
-                />
-            </div>
-        </div>
-    );
+      {/* Recent Grades */}
+      <Grid item xs={12}>
+        <Card>
+          <CardContent>
+            <Typography variant="h5" component="div" sx={{ mb: 2 }}>
+              Recent Grades
+            </Typography>
+            <List>
+              {dashboardData.recentGrades.map((grade, index) => (
+                <div key={index}>
+                  <ListItem>
+                    <ListItemText primary={grade.assignmentTitle} secondary={`Course: ${grade.courseName}`} />
+                    <Typography variant="h6">{grade.score}%</Typography>
+                  </ListItem>
+                  <Divider />
+                </div>
+              ))}
+            </List>
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
+  );
 };
 
-export default ReusableBarChartExamples;
+export default StudentDashboardV1;
