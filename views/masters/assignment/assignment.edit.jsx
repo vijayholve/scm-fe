@@ -7,7 +7,7 @@ import {
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-toastify';
-
+import BackButton from 'layout/MainLayout/Button/BackButton';
 import MainCard from 'ui-component/cards/MainCard';
 import AnimateButton from 'ui-component/extended/AnimateButton';
 import api from "../../../utils/apiService"
@@ -262,7 +262,9 @@ const EditAssignment = ({ ...others }) => {
                   >
                     {assignmentId ? 'Update' : 'Create'}
                   </Button>
+
                 </AnimateButton>
+                  <BackButton/>
               </Grid>}
             </Grid>
 
@@ -459,6 +461,7 @@ const EditAssignment = ({ ...others }) => {
                         console.error(err);
                       });
                   }}>Save</Button>
+
                   <Button
                     variant="outlined"
                     color="error"

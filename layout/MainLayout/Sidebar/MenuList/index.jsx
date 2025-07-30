@@ -6,7 +6,7 @@ import NavGroup from './NavGroup';
 import menuItem from 'menu-items';
 import { useSelector } from 'react-redux';
 import { filterMenuByPermissions } from 'menu-items/utilities';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 // ==============================|| SIDEBAR MENU LIST ||============================== //
 
@@ -14,12 +14,15 @@ const MenuList = () => {
 
  // permissions from Redux store
 const permissions = useSelector((state) => state.user.permissions || []);
+const [menuItemFilter, setMenuItemFilter] = useState([]);
 
 useEffect(() => {
   console.log('MenuList permissions:', permissions);
+   // Filter menu items based on permissions
+   setMenuItemFilter(filterMenuByPermissions(menuItem, permissions ||  []));
 }, [permissions]);
 
-console.log('MenuList permissions:', permissions);
+console.log('MenuList permissions:', menuItemFilter);
 
   if (!menuItem || !menuItem.items || menuItem.items.length === 0) {
     return (
@@ -29,10 +32,9 @@ console.log('MenuList permissions:', permissions);
     );
   }
 
-  // Filter menu items based on permissions
- const menuItemFilter = filterMenuByPermissions(menuItem, permissions ||  []);
+ 
 
-  const navItems = menuItemFilter.items.map((item) => {
+  const navItems = menuItemFilter?.items?.map((item) => {
     switch (item.type) {
       case 'group':
         return <NavGroup key={item.id} item={item} />;

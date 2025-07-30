@@ -20,6 +20,7 @@ import { gridSpacing } from 'store/constant';
 import api, { userDetails } from '../../../utils/apiService';
 import { toast } from 'react-toastify';
 import { useNavigate, useParams } from 'react-router-dom';
+import BackButton from 'layout/MainLayout/Button/BackButton';
 
 // Styled component for items
 const Item = styled(Paper)(({ theme }) => ({
@@ -239,6 +240,7 @@ const Attendence = () => {
         </Grid>
 
         {/* Submit Button */}
+        <BackButton />
         <Grid item xs={12}>
           <Button variant="contained" sx={{ float: 'right', mt: 1, bgcolor: '#673ab7' }} onClick={onHandleClickSubmit}>
             Submit

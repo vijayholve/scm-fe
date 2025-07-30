@@ -155,6 +155,7 @@ const RoleEdit = () => {
           <Button type="submit" variant="contained" color="primary">
             {role.id ? "Update" : "Create"}
           </Button>
+          
           <Button variant="outlined" onClick={() => navigate("/masters/roles")}>
             Cancel
           </Button>

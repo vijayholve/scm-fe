@@ -15,6 +15,7 @@ import AnimateButton from 'ui-component/extended/AnimateButton';
 import api from '../../../utils/apiService';
 import { gridSpacing } from 'store/constant';
 import { userDetails } from '../../../utils/apiService';
+import BackButton from 'layout/MainLayout/Button/BackButton';
 
 const EditUsers = ({ ...others }) => {
   const [roles, setRoles] = useState([]);
@@ -261,6 +262,8 @@ const EditUsers = ({ ...others }) => {
                     Save
                   </Button>
                 </AnimateButton>
+                <BackButton/>
+
               </Grid>
             </Grid>
           </form>

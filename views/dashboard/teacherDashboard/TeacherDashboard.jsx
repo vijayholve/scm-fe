@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Grid, Card, CardContent, Typography, List, ListItem, ListItemText, Button } from '@mui/material';
-import api from '../../../api'; // Assuming you have a centralized API handler
+// import api from '../../../api'; 
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import api, { userDetails } from 'utils/apiService';
+
 
 const TeacherDashboard = () => {
   const { user } = useSelector((state) => state.user);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Grid, Card, CardContent, Typography, List, ListItem, ListItemText, Divider } from '@mui/material';
-import api from '../../../api'; // Assuming you have a centralized API handler
+// import api, { userDetails } from 'utils/apiService';
+import api from 'utils/apiService'; // Assuming you have a centralized API handler
 import { useSelector } from 'react-redux';
 
 const StudentDashboardV1 = () => {

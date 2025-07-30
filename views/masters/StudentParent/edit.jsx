@@ -10,6 +10,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import AnimateButton from 'ui-component/extended/AnimateButton';
 import api, { userDetails } from '../../../utils/apiService';
 import { gridSpacing } from 'store/constant';
+import BackButton from 'layout/MainLayout/Button/BackButton';
 
 const EditStudent = ({ ...others }) => {
   const theme = useTheme();
@@ -259,6 +260,8 @@ const EditStudent = ({ ...others }) => {
                     Save
                   </Button>
                 </AnimateButton>
+                <BackButton/>
+
               </Grid>
             </Grid>
           </form>

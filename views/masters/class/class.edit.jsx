@@ -1,18 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
-import {
-  Autocomplete,
-  Box, Button, FormControl, FormHelperText, Grid, InputLabel, OutlinedInput, TextField
-} from '@mui/material';
+import { Autocomplete, Box, Button, FormControl, FormHelperText, Grid, InputLabel, OutlinedInput, TextField, Stack } from '@mui/material';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-toastify';
 
 import MainCard from 'ui-component/cards/MainCard';
 import AnimateButton from 'ui-component/extended/AnimateButton';
-import api, { userDetails } from "../../../utils/apiService"
+import api, { userDetails } from '../../../utils/apiService';
 import { gridSpacing } from 'store/constant';
+import BackButton from 'layout/MainLayout/Button/BackButton';
 
 const EditClass = ({ ...others }) => {
   const theme = useTheme();
@@ -27,12 +25,11 @@ const EditClass = ({ ...others }) => {
   });
 
   const Title = classId ? 'Edit Class' : 'Add Class';
+  const isEditMode = !!classId;
 
   const [institues, setInstitues] = useState([]);
   const [schools, setSchools] = useState([]);
   const [divions, setDivions] = useState([]);
-
-
 
   useEffect(() => {
     fetchData(0, 100, 'api/schoolBranches/getAll', setSchools);
@@ -41,15 +38,18 @@ const EditClass = ({ ...others }) => {
   }, []);
 
   const fetchData = async (page, pageSize, endpoint, setter) => {
-    api.post(`${endpoint}/${userDetails.getAccountId()}`, {
-      page: page,
-      size: pageSize,
-      sortBy: "id",
-      sortDir: "asc",
-      search: ""
-    }).then(response => {
-      setter(response.data.content || []);
-    }).catch(err => console.error(err));
+    api
+      .post(`${endpoint}/${userDetails.getAccountId()}`, {
+        page: page,
+        size: pageSize,
+        sortBy: 'id',
+        sortDir: 'asc',
+        search: ''
+      })
+      .then((response) => {
+        setter(response.data.content || []);
+      })
+      .catch((err) => console.error(err));
   };
 
   useEffect(() => {
@@ -74,18 +74,23 @@ const EditClass = ({ ...others }) => {
       setClassData(response.data);
       setSubmitting(false);
       console.log('schoolclass updated:', response.data);
-      toast.success("Class updated successfully", {
-        autoClose: '500', onClose: () => {
+      toast.success('Class updated successfully', {
+        autoClose: '500',
+        onClose: () => {
           navigate('/masters/classes');
         }
-      })
+      });
     } catch (error) {
       console.error('Failed to update schoolclass data:', error);
     }
   };
 
+  const handleCancel = () => {
+    navigate(-1); // Go back to previous page
+  };
+
   return (
-    <MainCard title={Title} >
+    <MainCard title={Title}>
       <Formik
         enableReinitialize
         initialValues={classData}
@@ -109,12 +114,9 @@ const EditClass = ({ ...others }) => {
                     onChange={handleChange}
                     label="Class Name"
                   />
-                  {touched.name && errors.name && (
-                    <FormHelperText error>{errors.name}</FormHelperText>
-                  )}
+                  {touched.name && errors.name && <FormHelperText error>{errors.name}</FormHelperText>}
                 </FormControl>
               </Grid>
-
 
               <Grid item xs={12} sm={6}>
                 <Autocomplete
@@ -123,7 +125,7 @@ const EditClass = ({ ...others }) => {
                   options={institues}
                   getOptionLabel={(option) => option.name}
                   onChange={(event, newValue) => {
-                    setFieldValue("instituteId", newValue ? newValue.id : "");
+                    setFieldValue('instituteId', newValue ? newValue.id : '');
                   }}
                   renderInput={(params) => <TextField {...params} label="Institute" />}
                 />
@@ -136,7 +138,7 @@ const EditClass = ({ ...others }) => {
                   options={schools}
                   getOptionLabel={(option) => option.name}
                   onChange={(event, newValue) => {
-                    setFieldValue("schoolbranchId", newValue ? newValue.id : "");
+                    setFieldValue('schoolbranchId', newValue ? newValue.id : '');
                   }}
                   renderInput={(params) => <TextField {...params} label="School" />}
                 />
@@ -149,7 +151,7 @@ const EditClass = ({ ...others }) => {
                   options={divions}
                   getOptionLabel={(option) => option.name}
                   onChange={(event, newValue) => {
-                    setFieldValue("divisionId", newValue ? newValue.id : "");
+                    setFieldValue('divisionId', newValue ? newValue.id : '');
                   }}
                   renderInput={(params) => <TextField {...params} label="Divisions" />}
                 />
@@ -157,18 +159,13 @@ const EditClass = ({ ...others }) => {
 
               {/* Submit Button */}
               <Grid item xs={12}>
-                <AnimateButton>
-                  <Button
-                    disableElevation
-                    disabled={isSubmitting}
-                    fullWidth
-                    type="submit"
-                    variant="contained"
-                    color="secondary"
-                  >
-                    Save
+                <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
+                  <BackButton />
+                  <Button variant="contained" color="primary" type="submit">
+                    {/* Use "Save" for add, "Update" for edit */}
+                    {isEditMode ? 'Update' : 'Save'}
                   </Button>
-                </AnimateButton>
+                </Stack>
               </Grid>
             </Grid>
           </form>

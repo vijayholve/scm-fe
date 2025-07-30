@@ -44,7 +44,7 @@ const icons = { IconUsers };
 const authData = userDetails.getUser();
 console.log('authData', authData);
 const isStudent =authData && authData.type === "STUDENT";
-if(isStudent){
+if(isStudent){ 
   console.log('User is a student');
 }else{
   console.log('User is not a student');

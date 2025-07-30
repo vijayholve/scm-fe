@@ -25,6 +25,7 @@ import AnimateButton from 'ui-component/extended/AnimateButton';
 import api, { userDetails } from '../../../utils/apiService';
 import { gridSpacing } from 'store/constant';
 import NavingateToOtherPage from 'ui-component/button/NavingateToOtherPage';
+import BackButton from 'layout/MainLayout/Button/BackButton';
 
 // Helper component for Tab Panel content
 function TabPanel(props) {
@@ -409,6 +410,8 @@ const EditStudent = () => {
                                                 Save
                                             </Button>
                                         </AnimateButton>
+                                        {/* <BackButton/> */}
+
                                     </Grid>
                                 </Grid>
                             </form>

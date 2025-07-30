@@ -28,6 +28,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import AnimateButton from 'ui-component/extended/AnimateButton';
 import api from '../../../utils/apiService'; // API service (userDetails import removed as it's now handled locally)
 import { gridSpacing } from 'store/constant'; // Grid spacing constant
+import BackButton from 'layout/MainLayout/Button/BackButton';
 
 const EditTimetable = ({ ...others }) => {
   const theme = useTheme();
@@ -644,6 +645,8 @@ const EditTimetable = ({ ...others }) => {
                     Save Timetable
                   </Button>
                 </AnimateButton>
+                <BackButton/>
+
               </Grid>
             </Grid>
           </form>
