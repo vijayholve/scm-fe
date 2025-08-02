@@ -1,21 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useTheme } from '@mui/material/styles';
 import { Autocomplete, Box, Button, FormControl, FormHelperText, Grid, InputLabel, OutlinedInput, TextField, Stack } from '@mui/material';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-toastify';
 
 import MainCard from 'ui-component/cards/MainCard';
-import AnimateButton from 'ui-component/extended/AnimateButton';
 import api, { userDetails } from '../../../utils/apiService';
 import { gridSpacing } from 'store/constant';
 import BackButton from 'layout/MainLayout/Button/BackButton';
 
 const EditClass = ({ ...others }) => {
-  const theme = useTheme();
   const navigate = useNavigate();
   const { id: classId } = useParams();
+
   const [classData, setClassData] = useState({
     id: undefined,
     name: '',
@@ -27,87 +25,115 @@ const EditClass = ({ ...others }) => {
   const Title = classId ? 'Edit Class' : 'Add Class';
   const isEditMode = !!classId;
 
-  const [institues, setInstitues] = useState([]);
+  const [institutes, setInstitutes] = useState([]);
   const [schools, setSchools] = useState([]);
-  const [divions, setDivions] = useState([]);
+  const [divisions, setDivisions] = useState([]);
+  const [allClasses, setAllClasses] = useState([]); // For uniqueness validation
 
+  // Fetch dropdown data
   useEffect(() => {
-    fetchData(0, 100, 'api/schoolBranches/getAll', setSchools);
-    fetchData(0, 100, 'api/institutes/getAll', setInstitues);
-    fetchData(0, 100, 'api/divisions/getAll', setDivions);
+    const fetchData = async (endpoint, setter) => {
+      try {
+        const response = await api.post(`${endpoint}/${userDetails.getAccountId()}`, {
+          page: 0,
+          size: 1000, // Fetch all for dropdowns
+          sortBy: 'id',
+          sortDir: 'asc',
+          search: ''
+        });
+        setter(response.data.content || []);
+      } catch (err) {
+        console.error(`Failed to fetch data from ${endpoint}:`, err);
+      }
+    };
+
+    fetchData('api/schoolBranches/getAll', setSchools);
+    fetchData('api/institutes/getAll', setInstitutes);
+    fetchData('api/divisions/getAll', setDivisions);
+    // Fetch all existing classes for uniqueness check
+    fetchData('api/schoolClasses/getAll', setAllClasses);
+    
   }, []);
 
-  const fetchData = async (page, pageSize, endpoint, setter) => {
-    api
-      .post(`${endpoint}/${userDetails.getAccountId()}`, {
-        page: page,
-        size: pageSize,
-        sortBy: 'id',
-        sortDir: 'asc',
-        search: ''
-      })
-      .then((response) => {
-        setter(response.data.content || []);
-      })
-      .catch((err) => console.error(err));
-  };
-
+  // Fetch class data if in edit mode
   useEffect(() => {
     if (classId) {
+      const fetchClassData = async (id) => {
+        try {
+          const response = await api.get(`api/schoolClasses/getById?id=${id}`);
+          setClassData(response.data);
+        } catch (error) {
+          console.error('Failed to fetch schoolclass data:', error);
+        }
+      };
       fetchClassData(classId);
     }
   }, [classId]);
 
-  const fetchClassData = async (id) => {
-    try {
-      const response = await api.get(`api/schoolClasses/getById?id=${id}`);
-      setClassData(response.data);
-    } catch (error) {
-      console.error('Failed to fetch schoolclass data:', error);
-    }
-  };
-
   const handleSubmit = async (values, { setSubmitting }) => {
-    const classData = { ...values, accountId: userDetails.getAccountId() };
+    const payload = { ...values, accountId: userDetails.getAccountId() };
+
     try {
-      const response = await api.put(`api/schoolClasses/update`, classData);
+      let response;
+      
+        response = await api.put(`api/schoolClasses/update`, payload);
+      
+      
       setClassData(response.data);
       setSubmitting(false);
-      console.log('schoolclass updated:', response.data);
-      toast.success('Class updated successfully', {
-        autoClose: '500',
+          console.log("classData",allClasses);
+
+      toast.success(isEditMode ? 'Class updated successfully!' : 'Class added successfully!', {
+        autoClose: 1500,
         onClose: () => {
           navigate('/masters/classes');
         }
       });
     } catch (error) {
-      console.error('Failed to update schoolclass data:', error);
+      console.error('Failed to save schoolclass data:', error);
+      toast.error('Failed to save class. Please try again.');
+      setSubmitting(false);
     }
   };
 
-  const handleCancel = () => {
-    navigate(-1); // Go back to previous page
-  };
-
   return (
-    <MainCard title={Title}>
+    <MainCard title={Title} secondary={<BackButton />}>
       <Formik
         enableReinitialize
         initialValues={classData}
         validationSchema={Yup.object().shape({
           name: Yup.string().max(255).required('Name is required')
+            .test('is-unique', 'This class name already exists for the selected school and division.', function (value) {
+                const { schoolbranchId, divisionId } = this.parent;
+                if (!value || !schoolbranchId || !divisionId) return true;
+
+                const existingClass = allClasses.find(
+                    c => c.name.toLowerCase() === value.toLowerCase() &&
+                         c.schoolbranchId === schoolbranchId &&
+                         c.divisionId === divisionId
+                );
+
+                if (isEditMode && existingClass && existingClass.id === parseInt(classId, 10)) {
+                    return true;
+                }
+
+                return !existingClass;
+            }),
+          instituteId: Yup.string().required('Institute is required'),
+          schoolbranchId: Yup.string().required('School is required'),
+          divisionId: Yup.string().required('Division is required')
         })}
         onSubmit={handleSubmit}
       >
         {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values, setFieldValue }) => (
           <form noValidate onSubmit={handleSubmit} {...others}>
             <Grid container spacing={gridSpacing}>
-              {/* subject Name */}
+              {/* Class Name */}
               <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel htmlFor="teacher-subject-name">Class Name</InputLabel>
+                <FormControl fullWidth error={Boolean(touched.name && errors.name)}>
+                  <InputLabel htmlFor="class-name-input">Class Name</InputLabel>
                   <OutlinedInput
-                    id="teacher-subject-name"
+                    id="class-name-input"
                     name="name"
                     value={values.name}
                     onBlur={handleBlur}
@@ -118,19 +144,28 @@ const EditClass = ({ ...others }) => {
                 </FormControl>
               </Grid>
 
+              {/* Institute Dropdown */}
               <Grid item xs={12} sm={6}>
                 <Autocomplete
                   disablePortal
-                  value={institues.find((ins) => ins.id === values.instituteId) || null}
-                  options={institues}
+                  value={institutes.find((ins) => ins.id === values.instituteId) || null}
+                  options={institutes}
                   getOptionLabel={(option) => option.name}
                   onChange={(event, newValue) => {
                     setFieldValue('instituteId', newValue ? newValue.id : '');
                   }}
-                  renderInput={(params) => <TextField {...params} label="Institute" />}
+                  renderInput={(params) => (
+                    <TextField 
+                      {...params} 
+                      label="Institute" 
+                      error={Boolean(touched.instituteId && errors.instituteId)}
+                      helperText={touched.instituteId && errors.instituteId}
+                    />
+                  )}
                 />
               </Grid>
 
+              {/* School Dropdown */}
               <Grid item xs={12} sm={6}>
                 <Autocomplete
                   disablePortal
@@ -140,29 +175,43 @@ const EditClass = ({ ...others }) => {
                   onChange={(event, newValue) => {
                     setFieldValue('schoolbranchId', newValue ? newValue.id : '');
                   }}
-                  renderInput={(params) => <TextField {...params} label="School" />}
+                  renderInput={(params) => (
+                     <TextField 
+                      {...params} 
+                      label="School" 
+                      error={Boolean(touched.schoolbranchId && errors.schoolbranchId)}
+                      helperText={touched.schoolbranchId && errors.schoolbranchId}
+                    />
+                  )}
                 />
               </Grid>
 
+              {/* Division Dropdown */}
               <Grid item xs={12} sm={6}>
                 <Autocomplete
                   disablePortal
-                  value={divions.find((div) => div.id === values.divisionId) || null}
-                  options={divions}
+                  value={divisions.find((div) => div.id === values.divisionId) || null}
+                  options={divisions}
                   getOptionLabel={(option) => option.name}
                   onChange={(event, newValue) => {
                     setFieldValue('divisionId', newValue ? newValue.id : '');
                   }}
-                  renderInput={(params) => <TextField {...params} label="Divisions" />}
+                  renderInput={(params) => (
+                    <TextField 
+                      {...params} 
+                      label="Division" 
+                      error={Boolean(touched.divisionId && errors.divisionId)}
+                      helperText={touched.divisionId && errors.divisionId}
+                    />
+                  )}
                 />
               </Grid>
 
               {/* Submit Button */}
               <Grid item xs={12}>
                 <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
-                  <BackButton />
-                  <Button variant="contained" color="primary" type="submit">
-                    {/* Use "Save" for add, "Update" for edit */}
+                  <Button variant="outlined" onClick={() => navigate(-1)}>Cancel</Button>
+                  <Button variant="contained" color="primary" type="submit" disabled={isSubmitting}>
                     {isEditMode ? 'Update' : 'Save'}
                   </Button>
                 </Stack>
