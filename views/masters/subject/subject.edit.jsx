@@ -44,7 +44,7 @@ const EditSubjects = ({ ...others }) => {
   const handleSubmit = async (values, { setSubmitting }) => {
     const subjectData = { ...values, accountId: userDetails.getAccountId(),id: subjectId ? subjectId : undefined};
     try {
-      const response = await api.put(`api/subjects/update`, subjectData);
+      const response = subjectId ? await api.put(`api/subjects/update`, subjectData) : await api.post(`api/subjects/save`, subjectData);
       setSubjectData(response.data);
       setSubmitting(false);
       console.log('subject updated:', response.data);

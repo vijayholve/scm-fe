@@ -103,7 +103,7 @@ const EditInstitute = ({ ...others }) => {
 
         try {
             // Use the correct API endpoint for creating or updating
-            const apiCall = instituteId ? api.put(`api/institutes/update`, institutePayload) : api.post(`api/institutes/create`, institutePayload);
+            const apiCall = api.put(`/api/institutes/save`, institutePayload);
             const response = await apiCall;
             
             setSubmitting(false);

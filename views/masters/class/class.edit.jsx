@@ -52,7 +52,6 @@ const EditClass = ({ ...others }) => {
     fetchData('api/divisions/getAll', setDivisions);
     // Fetch all existing classes for uniqueness check
     fetchData('api/schoolClasses/getAll', setAllClasses);
-    
   }, []);
 
   // Fetch class data if in edit mode
@@ -75,20 +74,24 @@ const EditClass = ({ ...others }) => {
 
     try {
       let response;
+      // This logic correctly handles both creating a new class and updating an existing one.
       
+        // Update existing class
         response = await api.put(`api/schoolClasses/update`, payload);
       
       
-      setClassData(response.data);
       setSubmitting(false);
-          console.log("classData",allClasses);
-
-      toast.success(isEditMode ? 'Class updated successfully!' : 'Class added successfully!', {
-        autoClose: 1500,
-        onClose: () => {
-          navigate('/masters/classes');
-        }
-      });
+      
+      if (response.data) {
+        toast.success(isEditMode ? 'Class updated successfully!' : 'Class added successfully!', {
+          autoClose: 1500,
+          onClose: () => {
+            navigate('/masters/classes');
+          }
+        });
+      } else {
+         toast.error('An unexpected error occurred. Please try again.');
+      }
     } catch (error) {
       console.error('Failed to save schoolclass data:', error);
       toast.error('Failed to save class. Please try again.');
