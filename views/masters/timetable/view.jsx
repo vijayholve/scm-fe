@@ -129,14 +129,7 @@ const TimetableGrid = () => {
                         }
                         return aMinute - bMinute;
                     });
-
-                    // Collect all days for THIS SPECIFIC CLASS and ensure consistent order
-                    // You might have a predefined order for days (e.g., Monday, Tuesday...)
-                    // For now, we'll sort alphabetically, or based on `sequence` if available and reliable.
-                    const classDays = classObject.dayTimeTable.map((day) => day.dayName).sort();
-
-
-                    // Map dayName to its slots for quick lookup
+                   const classDays = classObject.dayTimeTable.map((day) => day.dayName).sort();
                     const daySlotMap = {};
                     classObject.dayTimeTable.forEach((day) => {
                         daySlotMap[day.dayName] = {};

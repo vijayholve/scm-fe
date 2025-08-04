@@ -103,7 +103,7 @@ const Exams = () =>  {
             variant="outlined"
             id="approve_user"
             priority="primary"
-            onClick={(e) => navigate(`/masters/exams/edit/${params.row.id}`)}
+            onClick={(e) => navigate(`/masters/exam/edit/${params.row.id}`)}
             disabled={false}
             startIcon={<EditOutlinedIcon />}
           >
@@ -124,13 +124,7 @@ const Exams = () =>  {
     }
   };
   const fetchExams = (page, pageSize) => {
-     api.post(`api/users/getAll/${userDetails.getAccountId()}?type=EXAM`, {
-       page: page,
-       size: pageSize,
-       sortBy: "id",
-       sortDir: "asc",
-       search: ""
-     }).then(response => {
+     api.get('/api/exams/all').then(response => {
        setExams(response.data.content || []);
        setRowCount(response.data.totalElements || 0);
      }).catch(err => console.error(err));
@@ -141,7 +135,7 @@ const Exams = () =>  {
    }, [page, pageSize]);
 
   return (
-    <MainCard title="Exams" secondary={<SecondaryAction icon ={<AddIcon onClick={(e) => navigate(`/masters/exams/add`)} />}  />}>
+    <MainCard title="Exams" secondary={<SecondaryAction icon ={<AddIcon onClick={(e) => navigate(`/masters/exam/add`)} />}  />}>
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12} sm={12}>
           {/* <SubCard title="Teachers"> */}

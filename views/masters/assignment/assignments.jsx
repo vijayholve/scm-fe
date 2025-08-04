@@ -122,7 +122,7 @@ const Assignments = () =>  {
 
   return (
     <MainCard title="Assignments" secondary={<SecondaryAction icon ={<AddIcon onClick={(e) => navigate(`/masters/assignment/add`)} />}  />}>
-      <Grid container spacing={gridSpacing}>
+      <Grid container spacing={gridSpacing}>  
         <Grid item xs={12} sm={12}>
           {/* <SubCard title="subject"> */}
             <Grid container direction="column" spacing={1}>

@@ -1,14 +1,11 @@
 import { createRoot } from 'react-dom/client';
-
 // third party
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
-
-// project imports
+// project imports 
 import App from './App';
 import reducer from './store/reducer';
 
-// google-fonts
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/300.css';
@@ -29,9 +26,8 @@ import 'assets/scss/style.scss';
 import reportWebVitals from 'reportWebVitals';
 
 const container = document.getElementById('root');
-const root = createRoot(container); // createRoot(container!) if you use TypeScript
+const root = createRoot(container); 
 const store = configureStore({ reducer });
-
 // ==============================|| REACT DOM RENDER  ||============================== //
 
 root.render(
@@ -40,7 +36,4 @@ root.render(
   </Provider>
 );
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
 reportWebVitals();

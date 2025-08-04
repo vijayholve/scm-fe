@@ -1,153 +1,46 @@
-import { useNavigate } from "react-router-dom";
+import React from 'react';
+
 // material-ui
-import Grid from '@mui/material/Grid';
-import { styled } from '@mui/system';
-//import Link from '@mui/material/Link';
-//import MuiTypography from '@mui/material/Typography';
+import { Grid } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 
 // project imports
-import SubCard from 'ui-component/cards/SubCard';
 import MainCard from 'ui-component/cards/MainCard';
 import SecondaryAction from 'ui-component/cards/CardSecondaryAction';
 import { gridSpacing } from 'store/constant';
+import ReusableDataGrid from '../../../ui-component/ReusableDataGrid.jsx';
+import { userDetails } from '../../../utils/apiService';
 
-import Box from '@mui/material/Box';
-import { Button } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import AddIcon from '@mui/icons-material/Add';
-import Chip from '@mui/material/Chip';
-
-import api, { userDetails } from "../../../utils/apiService"
-import { useEffect, useState } from "react";
-
+// Define the columns specifically for the Subjects data grid.
+// The 'actions' column will be added automatically by the ReusableDataGrid.
 const columns = [
-  { field: 'id', headerName: 'ID', width: 90 },
-  {
-    field: 'name',
-    headerName: 'Name',
-    width: 150,
-    editable: true
-  },
-  {
-    field: 'subjectCode',
-    headerName: 'subjectCode',
-    width: 150,
-    editable: true
-  }
+    { field: 'id', headerName: 'ID', width: 90 },
+    { field: 'name', headerName: 'Name', width: 150, flex: 1 },
+    { field: 'subjectCode', headerName: 'Subject Code', width: 150, flex: 1 }
 ];
 
-
-const ActionWrapper = styled('div')({
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  gap: '12px',
-  padding: '6px 6px'
-});
-// ==============================|| USERS ||============================== //
+// ==============================|| SIMPLIFIED SUBJECTS LIST ||============================== //
 
 const Subjects = () => {
-  const [subjects, setSubject] = useState([]);
-  const navigate = useNavigate();
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(5);
-  const [rowCount, setRowCount] = useState(0);
+    const accountId = userDetails.getAccountId();
 
-  const handleOnClickDelete = (data) => {
-    if (data.id) {
-      api.delete(`api/subjects/delete?id=${data?.id}`).then(response => {
-        const filterClasses = subjects.filter(subject => subject.id !== data.id);
-        setSubject([...filterClasses]);
-      }).catch(err => console.error(err));
-    }
-  }
-
-  const actionColumn = {
-    field: 'actions',
-    headerName: 'Actions',
-    width: 190,
-    minWidth: 190,
-    hideable: false,
-    renderCell: (params) => {
-      return (
-        <ActionWrapper>
-          <Button
-            variant="outlined"
-            id="approve_user"
-            priority="primary"
-            onClick={(e) => navigate(`/masters/subject/edit/${params.row.id}`)}
-            disabled={false}
-            startIcon={<EditOutlinedIcon />}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="outlined"
-            id="reject_user"
-            priority="primary"
-            onClick={() => handleOnClickDelete(params.row)}
-            disabled={false}
-            startIcon={<DeleteIcon />}
-          >
-            Delete
-          </Button>
-        </ActionWrapper>
-      );
-    }
-  };
-
-
-  const fetchSubjects = (page, pageSize) => {
-    const pagination = {
-      page: page,
-      size: pageSize,
-      sortBy: "id",
-      sortDir: "asc",
-      search: ""
-    }
-    api.post(`api/subjects/getAll/${userDetails.getAccountId()}`,pagination ).then(response => {
-      setSubject(response.data.content || []);
-      setRowCount(response.data.totalElements || 0);
-    }).catch(err => console.error(err));
-  };
-
-  useEffect(() => {
-    fetchSubjects(page, pageSize);
-  }, [page, pageSize]);
-
-  return (
-    <MainCard title="Subject" secondary={<SecondaryAction icon={<AddIcon onClick={(e) => navigate(`/masters/subject/add`)} />} />}>
-      <Grid container spacing={gridSpacing}>
-        <Grid item xs={12} sm={12}>
-          {/* <SubCard title="subject"> */}
-          <Grid container direction="column" spacing={1}>
-            <Grid item>
-              <Box sx={{ height: 400, width: '100%' }}>
-                <DataGrid
-                  rows={subjects}
-                  columns={[...columns, actionColumn]}
-                  initialState={{
-                    pagination: {
-                      paginationModel: {
-                        pageSize: 5
-                      }
-                    }
-                  }}
-                  pageSizeOptions={[5]}
-                  checkboxSelection
-                  disableRowSelectionOnClick
-                />
-              </Box>
+    return (
+        <MainCard
+            title="Manage Subjects"
+            secondary={<SecondaryAction icon={<AddIcon />} link="/masters/subject/add" />}
+        >
+            <Grid container spacing={gridSpacing}>
+                <Grid item xs={12}>
+                    <ReusableDataGrid
+                        fetchUrl={`/api/subjects/getAll/${accountId}`}
+                        columns={columns}
+                        editUrl="/masters/subject/edit"
+                        deleteUrl="/api/subjects/delete"
+                    />
+                </Grid>
             </Grid>
-          </Grid>
-          {/* </SubCard> */}
-        </Grid>
-      </Grid>
-    </MainCard>
-  )
+        </MainCard>
+    );
 };
 
 export default Subjects;
