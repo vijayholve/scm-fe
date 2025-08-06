@@ -1,20 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // material-ui
-import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Grid, Button, Box } from '@mui/material';
+import { styled } from '@mui/system';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import { DataGrid } from '@mui/x-data-grid';
+import { toast } from 'react-hot-toast';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
 import SecondaryAction from 'ui-component/cards/CardSecondaryAction';
 import { gridSpacing } from 'store/constant';
-import ReusableDataGrid from '../../../ui-component/ReusableDataGrid.jsx';
 import { userDetails } from '../../../utils/apiService';
 import api from '../../../utils/apiService';
 
 // Define the columns specifically for the Students data grid.
-// The 'actions' column will be added automatically by the ReusableDataGrid.
-const columns = [
+const columnsConfig = [
     { field: 'rollno', headerName: 'Roll No', width: 90 },
     { field: 'userName', headerName: 'User Name', width: 150, flex: 1 },
     { field: 'name', headerName: 'Name', width: 150, flex: 1 },
@@ -25,100 +29,128 @@ const columns = [
     { field: 'divisionName', headerName: 'Division', width: 110, flex: 1 }
 ];
 
-// ==============================|| SIMPLIFIED STUDENTS LIST ||============================== //
+const ActionWrapper = styled('div')({
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '6px 6px'
+});
+
+// ==============================|| STUDENTS LIST PAGE ||============================== //
 
 const Students = () => {
+    const navigate = useNavigate();
     const accountId = userDetails.getAccountId();
     
-    // State for filters
-    const [selectedClassId, setSelectedClassId] = useState('');
-    const [selectedDivisionId, setSelectedDivisionId] = useState('');
-    const [classes, setClasses] = useState([]);
-    const [divisions, setDivisions] = useState([]);
+    // State for data, pagination, and loading
+    const [students, setStudents] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
+    const [rowCount, setRowCount] = useState(0);
 
-    // Fetch classes and divisions for filters
+    // Memoized function to fetch student data
+    const fetchStudents = useCallback(async () => {
+        setLoading(true);
+        const payload = {
+            page: paginationModel.page,
+            size: paginationModel.pageSize,
+            sortBy: "id",
+            sortDir: "asc",
+            search: ""
+        };
+        try {
+            const response = await api.post(`/api/users/getAll/${accountId}?type=STUDENT`, payload);
+            
+            const transformedData = (response.data.content || []).map(student => ({
+                ...student,
+                rollno: student.rollNo || student.id,
+                name: `${student.firstName || ''} ${student.lastName || ''}`.trim() || student.userName,
+                className: 'N/A', // Placeholder, as we are not fetching class/division names anymore
+                divisionName: 'N/A'
+            }));
+            
+            setStudents(transformedData);
+            setRowCount(response.data.totalElements || 0);
+        } catch (err) {
+            console.error("Failed to fetch students:", err);
+            toast.error("Could not fetch student data.");
+            setStudents([]);
+            setRowCount(0);
+        } finally {
+            setLoading(false);
+        }
+    }, [accountId, paginationModel]);
+
+    // Trigger fetch when pagination changes
     useEffect(() => {
-        // Fetch classes
-        api.get(`/api/schoolClasses/getAll/${accountId}`).then(response => {
-            setClasses(response.data.content || []);
-        }).catch(err => console.error(err));
+        fetchStudents();
+    }, [fetchStudents]);
 
-        // Fetch divisions
-        api.get(`/api/divisions/getAll/${accountId}`).then(response => {
-            setDivisions(response.data.content || []);
-        }).catch(err => console.error(err));
-    }, [accountId]);
-
-    // Create filters object for ReusableDataGrid
-    const filters = {
-        classId: selectedClassId,
-        divisionId: selectedDivisionId
+    const handleOnClickDelete = async (id) => {
+        if (window.confirm('Are you sure you want to delete this student?')) {
+            try {
+                await api.delete(`api/users/delete?id=${id}`);
+                toast.success('Student deleted successfully!');
+                fetchStudents(); // Refetch data after deletion
+            } catch (err) {
+                console.error(err);
+                toast.error('Failed to delete student.');
+            }
+        }
     };
+
+    const columns = [
+        ...columnsConfig,
+        {
+            field: 'actions',
+            headerName: 'Actions',
+            width: 190,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => (
+                <ActionWrapper>
+                    <Button
+                        variant="outlined"
+                        onClick={() => navigate(`/masters/student/edit/${params.row.id}`)}
+                        startIcon={<EditOutlinedIcon />}
+                    >
+                        Edit
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={() => handleOnClickDelete(params.row.id)}
+                        startIcon={<DeleteIcon />}
+                    >
+                        Delete
+                    </Button>
+                </ActionWrapper>
+            )
+        }
+    ];
 
     return (
         <MainCard
             title="Manage Students"
-            secondary={<SecondaryAction icon={<AddIcon />} link="/masters/students/add" />}
+            secondary={<SecondaryAction icon={<AddIcon />} link="/masters/student/add" />}
         >
             <Grid container spacing={gridSpacing}>
-                {/* Filter Section */}
-                <Grid item xs={12}>
-                    <Grid container direction="row" spacing={2} alignItems="center" sx={{ marginBottom: 2 }}>
-                        <Grid item xs={12} sm={4}>
-                            <FormControl fullWidth>
-                                <InputLabel id="class-select-label">Class</InputLabel>
-                                <Select
-                                    labelId="class-select-label"
-                                    id="class-select"
-                                    value={selectedClassId}
-                                    label="Class"
-                                    onChange={(event) => setSelectedClassId(event.target.value)}
-                                >
-                                    <MenuItem value="">
-                                        <em>None</em>
-                                    </MenuItem>
-                                    {classes.map((cls) => (
-                                        <MenuItem key={cls.id} value={cls.id}>
-                                            {cls.name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={12} sm={4}>
-                            <FormControl fullWidth>
-                                <InputLabel id="division-select-label">Division</InputLabel>
-                                <Select
-                                    labelId="division-select-label"
-                                    id="division-select"
-                                    value={selectedDivisionId}
-                                    label="Division"
-                                    onChange={(event) => setSelectedDivisionId(event.target.value)}
-                                    disabled={!selectedClassId}
-                                >
-                                    <MenuItem value="">
-                                        <em>None</em>
-                                    </MenuItem>
-                                    {divisions.map((div) => (
-                                        <MenuItem key={div.id} value={div.id}>
-                                            {div.name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </Grid>
-                    </Grid>
-                </Grid>
-                
                 {/* Data Grid */}
                 <Grid item xs={12}>
-                    <ReusableDataGrid
-                        fetchUrl={`/api/users/getAll/${accountId}?type=STUDENT`}
-                        columns={columns}
-                        editUrl="/masters/student/edit"
-                        deleteUrl="/api/users/delete"
-                        filters={filters}
-                    />
+                    <Box sx={{ height: 600, width: '100%' }}>
+                        <DataGrid
+                            rows={students}
+                            columns={columns}
+                            loading={loading}
+                            rowCount={rowCount}
+                            pageSizeOptions={[5, 10, 25]}
+                            paginationModel={paginationModel}
+                            onPaginationModelChange={setPaginationModel}
+                            paginationMode="server"
+                            getRowId={(row) => row.id}
+                        />
+                    </Box>
                 </Grid>
             </Grid>
         </MainCard>

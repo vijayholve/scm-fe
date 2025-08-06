@@ -1,43 +1,97 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { Grid, Card, CardContent, Typography, Box } from '@mui/material';
+import {  Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-// Import the different dashboard components
-import AdminDashboard from './AdminDashboard'; // Assuming you have a default admin dashboard
-import StudentDashboardV1 from './studentDashboard/StudentDashboardV1';
-import TeacherDashboard from './teacherDashboard/TeacherDashboard';
-import { userDetails } from 'utils/apiService';
-// import {-
-const Dashboard = () => {
-  // Get the user details from the Redux store
-  const authData = userDetails.getUser();
-console.log('authData', authData);
+import api from 'utils/apiService';
+import { BarChart } from '@mui/icons-material';
+// import 
+const AdminDashboard = () => {
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    totalTeachers: 0,
+    totalCourses: 0,
+  });
+  const [monthlyData, setMonthlyData] = useState([]);
 
-  // A helper function to render the correct dashboard based on the user's role
-  const renderDashboardByRole = () => {
-    // Check if the user and user.role exist
-    if (! authData.type || ! authData.type) {
-      // You can return a loading spinner or a default view here
-      return <AdminDashboard />;
-    }
+  useEffect(() => {
+    // Fetch dashboard data from the API
+    const fetchData = async () => {
+      try {
+        const response = await api.get('/dashboard/admin');
+        setStats(response.data.stats);
+        setMonthlyData(response.data.monthlyData);
+      } catch (error) {
+        console.error("Error fetching admin dashboard data:", error);
+      }
+    };
 
-    switch ( authData.type) {
-      case "STUDENT":
-        return <StudentDashboardV1 />;
-      case 'Teacher':
-        return <TeacherDashboard />;
-      case 'Admin':
-        return <AdminDashboard />;
-      default:
-        // Fallback to a default dashboard if the role is not recognized
-        return <AdminDashboard />;
-    }
-  };
+    fetchData();
+  }, []);
 
   return (
-    <div>
-      {renderDashboardByRole()}
-    </div>
+    <Box sx={{ flexGrow: 1 }}>
+      <Grid container spacing={3}>
+        {/* Statistics Cards */}
+        <Grid item xs={12} sm={4}>
+          <Card>
+            <CardContent>
+              <Typography variant="h5" component="div">
+                Total Students
+              </Typography>
+              <Typography variant="h3" color="text.secondary">
+                {stats.totalStudents}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card>
+            <CardContent>
+              <Typography variant="h5" component="div">
+                Total Teachers
+              </Typography>
+              <Typography variant="h3" color="text.secondary">
+                {stats.totalTeachers}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card>
+            <CardContent>
+              <Typography variant="h5" component="div">
+                Total Courses
+              </Typography>
+              <Typography variant="h3" color="text.secondary">
+                {stats.totalCourses}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Monthly Activity Chart */}
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <Typography variant="h5" component="div" sx={{ mb: 2 }}>
+                Monthly New Enrollments
+              </Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="enrollments" fill="#8884d8" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
 
-export default Dashboard;
+export default AdminDashboard;

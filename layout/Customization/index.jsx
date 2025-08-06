@@ -134,7 +134,7 @@ const Customization = () => {
               {/* font family */}
               <SubCard title="Font Family">
                 <FormControl>
-                  <RadioGroup
+                  <RadioGroup 
                     aria-label="font-family"
                     value={fontFamily}
                     onChange={(e) => setFontFamily(e.target.value)}

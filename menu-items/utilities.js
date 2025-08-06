@@ -20,7 +20,26 @@ const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
 
 
 // assets
-import { IconTypography, IconPalette, IconShadow, IconWindmill, IconUsers } from '@tabler/icons-react'; // Moved imports here for better organization
+import { 
+    IconTypography, 
+    IconPalette, 
+    IconShadow, 
+    IconWindmill, 
+    IconUsers,
+    IconUserCheck,
+    IconBuildingCommunity,
+    IconSchool,
+    IconBox,
+    IconLayoutGrid,
+    IconBook,
+    IconCalendarEvent,
+    IconClipboardList,
+    IconKey,
+    IconUsersGroup,
+    IconFileText,
+    IconClock,
+    IconUserCircle
+} from '@tabler/icons-react'; // Moved imports here for better organization
 
 // constant
 const icons = {
@@ -28,7 +47,20 @@ const icons = {
     IconPalette,
     IconShadow,
     IconWindmill,
-    IconUsers
+    IconUsers,
+    IconUserCheck,
+    IconBuildingCommunity,
+    IconSchool,
+    IconBox,
+    IconLayoutGrid,
+    IconBook,
+    IconCalendarEvent,
+    IconClipboardList,
+    IconKey,
+    IconUsersGroup,
+    IconFileText,
+    IconClock,
+    IconUserCircle
 };
 
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
@@ -94,7 +126,7 @@ const rawUtilities = {
                     title: 'Teachers',
                     type: 'item',
                     url: '/masters/teachers',
-                    icon: icons.IconUsers,
+                    icon: icons.IconUserCheck,
                     breadcrumbs: false
                 },
                 {
@@ -111,7 +143,7 @@ const rawUtilities = {
             id: 'INSTITUTE', // Consistent ID for parent
             title: 'Institutes',
             type: 'collapse',
-            icon: icons.IconUsers, // Consider a different icon if available for institutes
+            icon: icons.IconBuildingCommunity, // Consider a different icon if available for institutes
             breadcrumbs: false,
             children: [
                 {
@@ -119,7 +151,7 @@ const rawUtilities = {
                     title: 'Institutes',
                     type: 'item',
                     url: '/masters/institutes',
-                    icon: icons.IconUsers,
+                    icon: icons.IconBuildingCommunity,
                     breadcrumbs: false
                 },
                 {
@@ -127,7 +159,7 @@ const rawUtilities = {
                     title: 'Schools',
                     type: 'item',
                     url: '/masters/schools',
-                    icon: icons.IconUsers,
+                    icon: icons.IconSchool,
                     breadcrumbs: false
                 },
                 {
@@ -135,7 +167,7 @@ const rawUtilities = {
                     title: 'Classes',
                     type: 'item',
                     url: '/masters/classes',
-                    icon: icons.IconUsers,
+                    icon: icons.IconBox,
                     breadcrumbs: false
                 },
                 {
@@ -143,7 +175,7 @@ const rawUtilities = {
                     title: 'Divisions',
                     type: 'item',
                     url: '/masters/divisions',
-                    icon: icons.IconUsers,
+                    icon: icons.IconLayoutGrid,
                     breadcrumbs: false
                 },
                 {
@@ -151,7 +183,7 @@ const rawUtilities = {
                     title: 'Subjects',
                     type: 'item',
                     url: '/masters/subjects',
-                    icon: icons.IconUsers,
+                    icon: icons.IconBook,
                     breadcrumbs: false
                 }
             ]
@@ -161,7 +193,7 @@ const rawUtilities = {
             title: 'Attendance', // Corrected typo in title
             type: 'item',
             url: '/masters/attendances',
-            icon: icons.IconUsers,
+            icon: icons.IconCalendarEvent,
             breadcrumbs: false
         },
         {
@@ -169,7 +201,7 @@ const rawUtilities = {
             title: 'Student Attendance',
             type: 'item',
             url: '/masters/student-attendance',
-            icon: icons.IconUsers,
+            icon: icons.IconUserCheck,
             breadcrumbs: false
         },
         {
@@ -177,7 +209,7 @@ const rawUtilities = {
             title: 'Assignments',
             type: 'item',
             url: '/masters/assignments',
-            icon: icons.IconUsers,
+            icon: icons.IconClipboardList,
             breadcrumbs: false
         },
         {
@@ -185,7 +217,7 @@ const rawUtilities = {
             title: 'Roles',
             type: 'item',
             url: '/masters/roles',
-            icon: icons.IconUsers,
+            icon: icons.IconKey,
             breadcrumbs: false
         },
         {
@@ -193,7 +225,7 @@ const rawUtilities = {
             title: 'StudentParents',
             type: 'item',
             url: '/masters/studentParents',
-            icon: icons.IconUsers,
+            icon: icons.IconUsersGroup,
             breadcrumbs: false
         },
         {
@@ -201,7 +233,7 @@ const rawUtilities = {
             title: 'Exams',
             type: 'item',
             url: '/masters/exams',
-            icon: icons.IconUsers,
+            icon: icons.IconFileText,
             breadcrumbs: false
         },
         {
@@ -209,17 +241,51 @@ const rawUtilities = {
             title: 'Timetables',
             type: 'item',
             url: '/masters/timetables',
-            icon: icons.IconUsers,
+            icon: icons.IconClock,
             breadcrumbs: false
         } ,
+        {
+            id: 'LMS',
+            title: 'LMS',
+            type: 'item',
+            url: '/masters/lms',
+            icon: icons.IconUsers,
+            breadcrumbs: false
+        },
         {
             id: 'USER_PROFILE', // Consistent ID for permission check
             title: 'USER_PROFILE',
             type: 'item',
             url: '/masters/profile',
-            icon: icons.IconUsers,
+            icon: icons.IconUserCircle,
             breadcrumbs: false
+        },
+        {
+            id: 'QUIZ_MANAGEMENT',
+            title: 'Quiz & Tests',
+            type: 'collapse',
+            icon: icons.IconUsers,
+            breadcrumbs: false,
+            children: [
+                {
+                    id: 'QUIZ',
+                    title: 'Manage Quizzes',
+                    type: 'item',
+                    url: '/masters/quiz',
+                    icon: icons.IconUsers,
+                    breadcrumbs: false
+                },
+                {
+                    id: 'QUIZ_STUDENT',
+                    title: 'Available Quizzes',
+                    type: 'item',
+                    url: '/masters/student/quizzes',
+                    icon: icons.IconUsers,
+                    breadcrumbs: false
+                }
+            ]
         }
+        
        
     ]
 };

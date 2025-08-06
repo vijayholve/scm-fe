@@ -121,7 +121,7 @@ const EditInstitute = ({ ...others }) => {
 
 
   return (
-    <MainCard title={Title} secondary={<BackButton />}>
+    <MainCard title={Title} secondary={<BackButton BackUrl='/masters/institutes'/>}>
       <Formik
         // This key is important to re-initialize the form when instituteData is loaded
         key={instituteData.id || 'new-institute'}

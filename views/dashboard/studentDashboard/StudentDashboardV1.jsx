@@ -15,7 +15,13 @@ const StudentDashboardV1 = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await api.get(`/dashboard/student/${user.id}`);
+        const pagination = {
+          page: 0,
+          size: 1000,
+          sortBy: "id",
+          sortDir: "asc"
+        }
+        const response = await api.post(`/dashboard/student/${user.id}`, pagination);
         setDashboardData(response.data);
       } catch (error) {
         console.error("Error fetching student dashboard data:", error);

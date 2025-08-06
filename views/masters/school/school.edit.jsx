@@ -145,7 +145,7 @@ const EditSchool = ({ ...others }) => {
   };
 
   return (
-    <MainCard title={Title} secondary={<BackButton />}>
+    <MainCard title={Title} secondary={<BackButton BackUrl='/masters/schools'/>}>
       <Formik
         key={schoolData.id || 'new-school'} // Ensures form re-initializes when data loads
         enableReinitialize

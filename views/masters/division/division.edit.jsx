@@ -119,7 +119,7 @@ const EditDivision = ({ ...others }) => {
                     Save
                   </Button>
                 </AnimateButton>
-                <BackButton/>
+                <BackButton BackUrl='/masters/divisions'/>
 
               </Grid>
             </Grid>

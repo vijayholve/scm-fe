@@ -16,6 +16,7 @@ import api from '../../../utils/apiService';
 import { gridSpacing } from 'store/constant';
 import { userDetails } from '../../../utils/apiService';
 import BackButton from 'layout/MainLayout/Button/BackButton';
+import { useSelector } from 'react-redux';
 
 const EditUsers = ({ ...others }) => {
   const [roles, setRoles] = useState([]);
@@ -35,10 +36,20 @@ const EditUsers = ({ ...others }) => {
     email: '',
     address: '',
     type: 'TEACHER',
-    role: null
+    role: null,
+    gender: null,
+    schoolId: null,
   });
 
   const Title = userId ? 'Edit Teacher' : 'Add Teacher';
+
+  const [schools, setSchools] = useState([]);
+  const user = useSelector(state => state.user);
+  console.log("user", user);
+
+  useEffect(() => {
+    fetchData(`api/schoolBranches/getAll/${user?.user?.accountId}`, setSchools);
+  }, []);
 
   useEffect(() => {
     if (userId) {
@@ -247,7 +258,31 @@ const EditUsers = ({ ...others }) => {
                   renderInput={(params) => <TextField {...params} label="Role" />}
                 />
               </Grid>
-
+              {/* Gender Selection */}
+              <Grid item xs={12} sm={6}>
+                <Autocomplete
+                  disablePortal
+                  value={values.gender}
+                  options={['MALE', 'FEMALE']}
+                  onChange={(event, newValue) => {
+                    setFieldValue('gender', newValue);
+                  }}
+                  renderInput={(params) => <TextField {...params} label="Gender" />}
+                />
+              </Grid>
+              {/* School Selection */}
+              <Grid item xs={12} sm={6}>
+                <Autocomplete
+                  disablePortal
+                  value={schools.find((school) => school.id === values.schoolId) || null}
+                  options={schools}
+                  getOptionLabel={(option) => option.name}
+                  onChange={(event, newValue) => {
+                    setFieldValue('schoolId', newValue?.id ? newValue?.id : null);
+                  }}
+                  renderInput={(params) => <TextField {...params} label="School" />}
+                />
+              </Grid>
               {/* Submit Button */}
               <Grid item xs={12}>
                 <AnimateButton>

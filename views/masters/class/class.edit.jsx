@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTheme } from '@mui/material/styles';
 import { Autocomplete, Box, Button, FormControl, FormHelperText, Grid, InputLabel, OutlinedInput, TextField, Stack } from '@mui/material';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
@@ -50,11 +51,9 @@ const EditClass = ({ ...others }) => {
     fetchData('api/schoolBranches/getAll', setSchools);
     fetchData('api/institutes/getAll', setInstitutes);
     fetchData('api/divisions/getAll', setDivisions);
-    // Fetch all existing classes for uniqueness check
     fetchData('api/schoolClasses/getAll', setAllClasses);
   }, []);
 
-  // Fetch class data if in edit mode
   useEffect(() => {
     if (classId) {
       const fetchClassData = async (id) => {
@@ -75,13 +74,12 @@ const EditClass = ({ ...others }) => {
     try {
       let response;
       // This logic correctly handles both creating a new class and updating an existing one.
-      
-        // Update existing class
-        response = await api.put(`api/schoolClasses/update`, payload);
-      
-      
+
+      // Update existing class
+      response = await api.put(`api/schoolClasses/update`, payload);
+
       setSubmitting(false);
-      
+
       if (response.data) {
         toast.success(isEditMode ? 'Class updated successfully!' : 'Class added successfully!', {
           autoClose: 1500,
@@ -90,7 +88,7 @@ const EditClass = ({ ...others }) => {
           }
         });
       } else {
-         toast.error('An unexpected error occurred. Please try again.');
+        toast.error('An unexpected error occurred. Please try again.');
       }
     } catch (error) {
       console.error('Failed to save schoolclass data:', error);
@@ -100,27 +98,27 @@ const EditClass = ({ ...others }) => {
   };
 
   return (
-    <MainCard title={Title} secondary={<BackButton />}>
+    <MainCard title={Title} secondary={<BackButton BackUrl="/masters/classes" />}>
       <Formik
         enableReinitialize
         initialValues={classData}
         validationSchema={Yup.object().shape({
-          name: Yup.string().max(255).required('Name is required')
+          name: Yup.string()
+            .max(255)
+            .required('Name is required')
             .test('is-unique', 'This class name already exists for the selected school and division.', function (value) {
-                const { schoolbranchId, divisionId } = this.parent;
-                if (!value || !schoolbranchId || !divisionId) return true;
+              const { schoolbranchId, divisionId } = this.parent;
+              if (!value || !schoolbranchId || !divisionId) return true;
 
-                const existingClass = allClasses.find(
-                    c => c.name.toLowerCase() === value.toLowerCase() &&
-                         c.schoolbranchId === schoolbranchId &&
-                         c.divisionId === divisionId
-                );
+              const existingClass = allClasses.find(
+                (c) => c.name.toLowerCase() === value.toLowerCase() && c.schoolbranchId === schoolbranchId && c.divisionId === divisionId
+              );
 
-                if (isEditMode && existingClass && existingClass.id === parseInt(classId, 10)) {
-                    return true;
-                }
+              if (isEditMode && existingClass && existingClass.id === parseInt(classId, 10)) {
+                return true;
+              }
 
-                return !existingClass;
+              return !existingClass;
             }),
           instituteId: Yup.string().required('Institute is required'),
           schoolbranchId: Yup.string().required('School is required'),
@@ -158,9 +156,9 @@ const EditClass = ({ ...others }) => {
                     setFieldValue('instituteId', newValue ? newValue.id : '');
                   }}
                   renderInput={(params) => (
-                    <TextField 
-                      {...params} 
-                      label="Institute" 
+                    <TextField
+                      {...params}
+                      label="Institute"
                       error={Boolean(touched.instituteId && errors.instituteId)}
                       helperText={touched.instituteId && errors.instituteId}
                     />
@@ -179,9 +177,9 @@ const EditClass = ({ ...others }) => {
                     setFieldValue('schoolbranchId', newValue ? newValue.id : '');
                   }}
                   renderInput={(params) => (
-                     <TextField 
-                      {...params} 
-                      label="School" 
+                    <TextField
+                      {...params}
+                      label="School"
                       error={Boolean(touched.schoolbranchId && errors.schoolbranchId)}
                       helperText={touched.schoolbranchId && errors.schoolbranchId}
                     />
@@ -200,9 +198,9 @@ const EditClass = ({ ...others }) => {
                     setFieldValue('divisionId', newValue ? newValue.id : '');
                   }}
                   renderInput={(params) => (
-                    <TextField 
-                      {...params} 
-                      label="Division" 
+                    <TextField
+                      {...params}
+                      label="Division"
                       error={Boolean(touched.divisionId && errors.divisionId)}
                       helperText={touched.divisionId && errors.divisionId}
                     />
@@ -213,7 +211,7 @@ const EditClass = ({ ...others }) => {
               {/* Submit Button */}
               <Grid item xs={12}>
                 <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
-                  <Button variant="outlined" onClick={() => navigate(-1)}>Cancel</Button>
+                  <BackButton BackUrl="/masters/classes" />
                   <Button variant="contained" color="primary" type="submit" disabled={isSubmitting}>
                     {isEditMode ? 'Update' : 'Save'}
                   </Button>

@@ -119,7 +119,7 @@ const EditSubjects = ({ ...others }) => {
                     Save
                   </Button>
                 </AnimateButton>
-                <BackButton/>
+                <BackButton BackUrl='/masters/subjects'/>
 
               </Grid>
             </Grid>

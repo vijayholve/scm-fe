@@ -1,155 +1,129 @@
-import { useNavigate } from "react-router-dom";
-// material-ui
-import Grid from '@mui/material/Grid';
-import { styled } from '@mui/system';
-//import Link from '@mui/material/Link';
-//import MuiTypography from '@mui/material/Typography';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from 'dayjs';
 
-// project imports
-import SubCard from 'ui-component/cards/SubCard';
 import MainCard from 'ui-component/cards/MainCard';
 import SecondaryAction from 'ui-component/cards/CardSecondaryAction';
 import { gridSpacing } from 'store/constant';
+import ReusableDataGrid from '../../../ui-component/ReusableDataGrid.jsx';
+import api, { userDetails } from '../../../utils/apiService';
 
-import Box from '@mui/material/Box';
-import { Button } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import AddIcon from '@mui/icons-material/Add';
-import Chip from '@mui/material/Chip';
-
-import api from "../../../utils/apiService"
-import { useEffect, useState } from "react";
-
+// Define the columns for the assignments data grid.
 const columns = [
   { field: 'id', headerName: 'ID', width: 90 },
-  {
-    field: 'name',
-    headerName: 'Name',
-    width: 150,
-    editable: true
-  },
-  {
-    field: 'std',
-    headerName: 'Standard',
-    width: 150,
-    editable: true
-  },
-  {
-    field: 'subjectName',
-    headerName: 'Subject',
-    width: 150,
-    editable: true
-  },
-  {
-    field: 'createdBy',
-    headerName: 'Created By',
-    width: 150,
-    editable: true
-  },
-  {
-    field: 'deadLine',
-    headerName: 'Dead Line',
-    width: 150,
-    editable: true
-  }
+  { field: 'name', headerName: 'Name', width: 150, flex: 1 },
+  { field: 'std', headerName: 'Standard', width: 150, editable: true },
+  { field: 'subjectName', headerName: 'Subject', width: 150, editable: true },
+  { field: 'createdBy', headerName: 'Created By', width: 150, editable: true },
+  { field: 'deadLine', headerName: 'Deadline', width: 150, editable: true }
 ];
 
-
-const ActionWrapper = styled('div')({
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  gap: '12px',
-  padding: '6px 6px'
-});
-// ==============================|| USERS ||============================== //
-
-const Assignments = () =>  {
-  const [assignments, setAssignment] = useState([]);
+const Assignments = () => {
   const navigate = useNavigate();
+  const accountId = userDetails.getAccountId();
 
-  const handleOnClickDelete = (data) => {
-    if (data.id) {
-      api.delete(`api /assignments/delete?id=${data?.id}`).then(response => {
-        const filterAssignments = assignments.filter(assign => assign.id !== data.id);
-        setAssignment([...filterAssignments]);
-      }).catch(err => console.error(err));
-    }
-  }
+  // State for filter dropdowns and date picker
+  const [subjects, setSubjects] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [selectedSubjectId, setSelectedSubjectId] = useState('');
+  const [selectedClassId, setSelectedClassId] = useState('');
+  const [activeSinceDate, setActiveSinceDate] = useState(null);
 
-  const actionColumn = {
-    field: 'actions',
-    headerName: 'Actions',
-    width: 190,
-    minWidth: 190,
-    hideable: false,
-    renderCell: (params) => {
-      return (
-        <ActionWrapper>
-          <Button
-            variant="outlined"
-            id="approve_user"
-            priority="primary"
-            onClick={(e) => navigate(`/masters/assignment/edit/${params.row.id}`)}
-            disabled={false}
-            startIcon={<EditOutlinedIcon />}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="outlined"
-            id="reject_user"
-            priority="primary"
-            onClick={() => handleOnClickDelete(params.row)}
-            disabled={false}
-            startIcon={<DeleteIcon />}
-          >
-            Delete
-          </Button>
-        </ActionWrapper>
-      );
-    }
+  // Fetch subjects and classes for the dropdown filters
+  useEffect(() => {
+    const fetchDropdownData = async () => {
+      try {
+        const subjectsResponse = await api.post(`/api/subjects/getAll/${accountId}`, { page: 0, size: 1000, sortBy: 'id', sortDir: 'asc', search: '' });
+        setSubjects(subjectsResponse.data.content || []);
+
+        const classesResponse = await api.post(`/api/schoolClasses/getAll/${accountId}`, { page: 0, size: 1000, sortBy: 'id', sortDir: 'asc', search: '' });
+        setClasses(classesResponse.data.content || []);
+      } catch (err) {
+        console.error('Failed to fetch dropdown data:', err);
+      }
+    };
+    fetchDropdownData();
+  }, [accountId]);
+
+  // Create the filters object to pass to ReusableDataGrid
+  const filters = {
+    subjectId: selectedSubjectId,
+    classId: selectedClassId,
+    activeSince: activeSinceDate ? dayjs(activeSinceDate).format('YYYY-MM-DD') : null
   };
-  useEffect(()=> {
-    api.get('api/assignments/getAll/1').then(response => {
-      console.log(response.data)
-      setAssignment(response.data);
-    }).catch(err => console.error(err));
-  },[]);
 
   return (
-    <MainCard title="Assignments" secondary={<SecondaryAction icon ={<AddIcon onClick={(e) => navigate(`/masters/assignment/add`)} />}  />}>
-      <Grid container spacing={gridSpacing}>  
-        <Grid item xs={12} sm={12}>
-          {/* <SubCard title="subject"> */}
-            <Grid container direction="column" spacing={1}>
-              <Grid item>
-                <Box sx={{ height: 400, width: '100%' }}>
-                  <DataGrid
-                    rows={assignments}
-                    columns={[...columns, actionColumn]}
-                    initialState={{
-                      pagination: {
-                        paginationModel: {
-                          pageSize: 5
-                        }
-                      }
-                    }}
-                    pageSizeOptions={[5]}
-                    checkboxSelection
-                    disableRowSelectionOnClick
-                  />
-                </Box>
-              </Grid>
-            </Grid>
-          {/* </SubCard> */}
+    <MainCard
+      title="Assignments"
+      secondary={<SecondaryAction icon={<AddIcon />} link="/masters/assignment/add" />}
+    >
+      <Grid container spacing={gridSpacing} sx={{ mb: 2 }}>
+        {/* Subject Filter Dropdown */}
+        <Grid item xs={12} sm={4}>
+          <FormControl fullWidth>
+            <InputLabel id="subject-select-label">Subject</InputLabel>
+            <Select
+              labelId="subject-select-label"
+              id="subject-select"
+              value={selectedSubjectId}
+              label="Subject"
+              onChange={(e) => setSelectedSubjectId(e.target.value)}
+            >
+              <MenuItem value=""><em>None</em></MenuItem>
+              {subjects.map((subject) => (
+                <MenuItem key={subject.id} value={subject.id}>{subject.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        {/* Class Filter Dropdown */}
+        <Grid item xs={12} sm={4}>
+          <FormControl fullWidth>
+            <InputLabel id="class-select-label">Class</InputLabel>
+            <Select
+              labelId="class-select-label"
+              id="class-select"
+              value={selectedClassId}
+              label="Class"
+              onChange={(e) => setSelectedClassId(e.target.value)}
+            >
+              <MenuItem value=""><em>None</em></MenuItem>
+              {classes.map((cls) => (
+                <MenuItem key={cls.id} value={cls.id}>{cls.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        {/* 'Active Since' Date Picker */}
+        <Grid item xs={12} sm={4}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label="Active Since"
+              value={activeSinceDate}
+              onChange={(newValue) => setActiveSinceDate(newValue)}
+              renderInput={(params) => <TextField {...params} />}
+            />
+          </LocalizationProvider>
         </Grid>
       </Grid>
+      <Grid item xs={12}>
+        <ReusableDataGrid
+          fetchUrl={`/api/assignments/getAll/${accountId}`}
+          columns={columns}
+          editUrl="/masters/assignment/edit"
+          deleteUrl="/api/assignments/delete"
+          filters={filters}
+        />
+      </Grid>
     </MainCard>
-  )
+  );
 };
 
 export default Assignments;

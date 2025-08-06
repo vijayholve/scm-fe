@@ -3,11 +3,15 @@ import { Button, Grid, Stack } from '@mui/material';
 
 //   import React from 'react'
 
-const BackButton = () => {
+const BackButton = ({ BackUrl = '' }) => {
   const navigate = useNavigate();
 
   const handleCancel = () => {
-    navigate(-1); // Go back to previous page
+    if (BackUrl) {
+      navigate(BackUrl);
+    } else {
+      navigate(-1); // Go back to previous page
+    }
   };
   return (
     <>

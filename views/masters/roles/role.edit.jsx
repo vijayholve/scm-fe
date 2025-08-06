@@ -19,6 +19,7 @@ import {
 import MainCard from "ui-component/cards/MainCard";
 import { gridSpacing } from "store/constant";
 import api, { userDetails } from "../../../utils/apiService";
+import BackButton from "layout/MainLayout/Button/BackButton";
 
 const defaultActions = ["add", "edit", "view", "delete"];
 
@@ -155,10 +156,10 @@ const RoleEdit = () => {
           <Button type="submit" variant="contained" color="primary">
             {role.id ? "Update" : "Create"}
           </Button>
-          
-          <Button variant="outlined" onClick={() => navigate("/masters/roles")}>
-            Cancel
-          </Button>
+          <Grid container spacing={gridSpacing}>
+
+          <BackButton BackUrl={"/masters/roles"}/> 
+          </Grid>
         </Box>
       </form>
     </MainCard>
